@@ -54,7 +54,8 @@ echo \app\components\widgets\Maps\MapPicker::widget([
 - __mapOptions__:
     - __zoom__: the zoom to start the map with *default: 16*.
     - __streetViewControl__: Enables or disables street view control or no *default: false*
-
+- __show__: Set to false if you don't want the widget to autoload.
+- __scriptsPosition__: The position where the scripts should load. See [yii\web\View](https://www.yiiframework.com/doc/api/2.0/yii-web-view) constants for positions.
 ## Examples ##
 ```html
 <input name='lat' class='my-lat-field'/>

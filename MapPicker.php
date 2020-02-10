@@ -1,11 +1,12 @@
 <?php
 
-namespace app\components\widgets\Maps;
+namespace proximitymad\yii2mapspickerwidget;
 
 
 use yii\base\Widget;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
+use yii\web\View;
 
 /**
  * Class MapPicker Widget
@@ -19,11 +20,11 @@ class MapPicker extends Widget
     /**
      * @var bool|int Width for the map widget, optional
      */
-    public $width = 200;
+    public $width = "200px";
     /**
      * @var int Height for the map widget, optional
      */
-    public $height = 100;
+    public $height = "100px";
     /**
      * @var string Input field where to update matching latitude
      */
@@ -64,9 +65,17 @@ class MapPicker extends Widget
      * @var bool|string Google Map API key, required if there is not an Google Maps API already loaded
      */
     public $apiKey = false;
-
+    /**
+     * @var bool Defines if the widget must load automatically
+     */
+    public $show = true;
+    /**
+     * @var null Defines where to load the JS @see yii\web\View
+     */
+    public $scriptsPosition = null;
     public function init()
     {
+        $this->scriptsPosition = $this->scriptsPosition?:View::POS_READY;
         if ($this->loadMapApi === true && ($this->apiKey === false || $this->apiKey === '')) {
             throw new \Exception("Api key missing");
         }
@@ -76,8 +85,10 @@ class MapPicker extends Widget
         }
         $this->mapId = $this->mapId ?: 'map_' . substr(md5(time() . rand(0, 999)), 0, 8);
         $styles = [];
-        $styles[] = $this->width ? "width: {$this->width}px;" : '';
-        $styles[] = $this->height ? "height: {$this->height}px;" : '';
+        $width = strpos($this->width, "px")||strpos($this->width, "%")?$this->width:$this->width."px";
+        $height = strpos($this->height, "px")||strpos($this->height, "%")?$this->height:$this->height."px";
+        $styles[] = $this->width ? "width: {$width};" : '';
+        $styles[] = $this->height ? "height: {$height};" : '';
         $style = implode(" ", $styles);
         $this->options = ArrayHelper::merge(['style' => $style], $this->options);
     }
@@ -96,13 +107,15 @@ class MapPicker extends Widget
         ];
         $js = "var mapPicker_{$this->mapId} = new MapPicker(" . json_encode($options) . ")\n";
         $js .= "var mapInstances = []; mapInstances.push(mapPicker_{$this->mapId})\n";
-        $js .= "mapPicker_{$this->mapId}.init()\n";
-        if ($this->search) {
-            $js .= "mapPicker_{$this->mapId}.search('{$this->search}')\n";
-        } else {
-            throw new \Exception("MapPicker: 'search' parameter is required");
+        if($this->show){
+            $js .= "mapPicker_{$this->mapId}.init()\n";
+            if ($this->search) {
+                $js .= "mapPicker_{$this->mapId}.search('{$this->search}')\n";
+            } else {
+                throw new \Exception("MapPicker: 'search' parameter is required");
+            }
         }
-        $this->view->registerJs($js);
+        $this->view->registerJs($js, $this->scriptsPosition);
         return Html::tag('div', 'Map', ArrayHelper::merge(['id' => $this->mapId], $this->options));
     }
 }
